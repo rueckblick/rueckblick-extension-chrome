@@ -1,0 +1,11 @@
+dist
+node_modules
+pnpm-lock.yaml
+
+# generated — DECISIONS.md is produced by scripts/gen-decisions.sh from adr/
+DECISIONS.md
+
+# tool-managed (DevSpecs / agent skill scaffolding)
+.devspecs
+.agents
+.claude

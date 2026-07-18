@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+
+# editor / OS
+.DS_Store
+*.log
+
+# local env / secrets (tokens live in chrome.storage.local, never here)
+.env
+.env.*
+!.env.example

@@ -1,0 +1,50 @@
+version: 1
+sources:
+    - type: openspec
+      path: openspec
+    - type: adr
+      paths:
+        - adr
+        - adrs
+        - docs/adr
+        - docs/adrs
+    - type: markdown
+      paths:
+        - .agents/skills
+        - .claude/notes
+        - .claude/plans
+        - .claude/skills
+        - .codex/notes
+        - .codex/plans
+        - .codex/skills
+        - .cursor/commands
+        - .cursor/plans
+        - .specify/memory
+        - .windsurf/workflows
+        - RFCS
+        - _bmad-output
+        - agents
+        - architecture
+        - design-docs
+        - docs/RFCS
+        - docs/architecture
+        - docs/design
+        - docs/design-docs
+        - docs/plans
+        - docs/prd
+        - docs/product-specs
+        - docs/requirements
+        - docs/rfc
+        - docs/rfcs
+        - docs/roadmaps
+        - docs/specs
+        - docs/technical
+        - plans
+        - product-specs
+        - requirements
+        - rfc
+        - rfcs
+        - roadmaps
+        - specs
+        - okf
+    - type: source_context
