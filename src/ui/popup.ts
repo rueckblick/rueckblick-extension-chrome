@@ -28,7 +28,10 @@ async function render(): Promise<void> {
   app.innerHTML = '';
   app.append(el('p', status, 'status'));
 
-  if (pairError) {
+  // Only while it still matters. A pairing error left over from an earlier
+  // attempt, shown underneath "Connected", tells the user something is wrong
+  // when nothing is.
+  if (pairError && !connected) {
     app.append(el('p', pairingMessage(pairError), 'error'));
   }
 
