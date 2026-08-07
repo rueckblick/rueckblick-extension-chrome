@@ -1,17 +1,36 @@
 /**
  * Service-worker entry point (see plan.md §7).
  *
- * Future responsibility: on every worker wake, re-enforce FIRST (block all budgeted
- * patterns until the first `budget_state` arrives), then `bridge.connect()` and
- * `startTracker()`. Registers a `chrome.alarms` `rueckblick-tick` every 0.5 min (the
- * Chrome minimum) that survives worker death and re-checks staleness + retries connect.
- * Routes `onMessage`: `{ type: "pair", code }` from the popup, `{ type: "nav", url }`
- * from the content script -> `redirectIfBlocked(tabId, url)`.
- *
- * No wiring yet — scaffold only. Importing the protocol constants keeps this a real
- * module entry that pass 1 of the build can bundle to dist/background.js.
+ * A Manifest V3 worker is killed and restarted constantly, so nothing here may assume it
+ * has been running: every wake reconnects and restarts the tracker, both of which are
+ * idempotent. The alarm exists because a worker with no timers is a worker Chrome will
+ * not wake at all, and half a minute is the shortest interval it allows.
  */
-import { BRIDGE_URL, PROTOCOL_VERSION } from '../shared/protocol.js';
+import { bridge } from './bridge.js';
+import { startTracker } from './tracker.js';
 
-void BRIDGE_URL;
-void PROTOCOL_VERSION;
+const TICK_ALARM = 'rueckblick-tick';
+
+function wake(): void {
+  void bridge.connect();
+  startTracker();
+}
+
+chrome.runtime.onStartup.addListener(wake);
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.alarms.create(TICK_ALARM, { periodInMinutes: 0.5 });
+  wake();
+});
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === TICK_ALARM) wake();
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+  if (message?.type === 'pair' && typeof message.code === 'string') {
+    void bridge.pair(message.code).then(() => respond({ ok: true }));
+    return true;
+  }
+  return false;
+});
+
+wake();
