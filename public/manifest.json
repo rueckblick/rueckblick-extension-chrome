@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rueckblick",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Companion to the Rueckblick desktop app: tells it which page is in front, and blocks sites once their daily budget is used up.",
   "icons": {
     "16": "icons/icon-16.png",
