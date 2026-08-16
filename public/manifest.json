@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rueckblick",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Thin sensor/actuator for the Rueckblick screen-time budget: samples the focused tab and hard-blocks exhausted URLs via the desktop-app bridge.",
   "background": {
     "service_worker": "background.js",

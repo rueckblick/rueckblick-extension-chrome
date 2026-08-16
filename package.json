@@ -1,6 +1,6 @@
 {
   "name": "rueckblick-extension-chrome",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Rueckblick MV3 browser extension: a thin sensor/actuator that samples the focused tab and hard-blocks exhausted URLs via the desktop-app bridge.",
   "private": true,
   "type": "module",
@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "e2e": "pnpm build && playwright test",
     "package": "pnpm build && node scripts/package.mjs",
-    "lint:firefox": "web-ext lint --source-dir artifacts/firefox --self-hosted"
+    "lint:firefox": "web-ext lint --source-dir artifacts/firefox --self-hosted",
+    "check-version": "node scripts/check-version.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -7,5 +7,14 @@ DECISIONS.md
 
 # tool-managed (DevSpecs / agent skill scaffolding)
 .devspecs
+# The task workspaces too, not just the config: `ds` writes these and they are
+# frozen history. Reformatting them is both wrong and futile — the next
+# checkpoint writes them again and CI goes red on generated text nobody edits.
+devspecs
 .agents
 .claude
+
+# Build output. Gitignored, but Prettier does not read .gitignore.
+artifacts
+test-results
+playwright-report
