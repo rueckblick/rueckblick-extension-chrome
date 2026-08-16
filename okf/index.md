@@ -9,13 +9,22 @@ timestamp: 2026-07-18
 # rueckblick-extension-chrome — OKF index
 
 The Rueckblick browser extension is an **MV3 thin sensor/actuator** (Chrome-family,
-developed on Brave, loaded unpacked — no Web Store). It samples the focused active tab
+developed on Brave, loaded unpacked; a store listing is prepared, not submitted). It
+samples the focused active tab
 once per second, reports raw URLs to the desktop app over a loopback WebSocket bridge, and
 **hard-blocks exhausted URLs by redirecting to an in-extension block page**. It never talks
 to the budget server — the desktop app owns the budget cache and the server conversation.
 
-Status: **toolchain scaffold — implementation not started.** Source files are stubs whose
-doc comments state their future responsibility; the build produces a loadable-shape `dist/`.
+Status: **built and released.** Pairing, reporting, DNR blocking, the open-tab sweep, the
+SPA navigation watcher and the block page all exist, are covered by an in-repo Playwright
+suite driving a real browser against a mock bridge, and were verified against the real
+desktop app on 2026-08-07. Firefox is packaged and linted but has never been run.
+
+Two kinds of block arrive over the same wire as ordinary rules: an **exhausted budget**,
+and a site the user marked **always blocked**. The latter carries an empty `resets_at` —
+the only thing that distinguishes it, and the only thing the block page reads, so that it
+stops offering a countdown to a reset that will never come. Neither is a decision made
+here.
 
 ## What this repo is (and is not)
 
@@ -44,8 +53,8 @@ doc comments state their future responsibility; the build produces a loadable-sh
 
 ## Playbooks
 
-- [[dev-verify]] — load-unpacked flow and the PLANNED mock-bridge + headless-Chromium
-  verification (§7, §11).
+- [[dev-verify]] — load-unpacked flow and the mock-bridge Playwright verification, which
+  is built (`pnpm e2e`) rather than planned (§7, §11).
 
 ## Contracts (not owned here)
 

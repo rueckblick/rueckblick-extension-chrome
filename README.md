@@ -3,18 +3,26 @@
 MV3 browser extension for [Rueckblick](../../plan.md) — a self-hosted, cross-device
 screen-time tracker and blocker. This extension is a **thin sensor/actuator**: it samples
 the focused browser tab once per second, reports raw URLs to the Rueckblick desktop app over
-a loopback WebSocket bridge, and hard-blocks exhausted URLs by redirecting to an
+a loopback WebSocket bridge, and hard-blocks blocked URLs by redirecting to an
 in-extension block page. It never talks to the budget server, and it never decides budgets —
 the desktop app owns that.
 
-Chrome-family, developed on Brave, **loaded unpacked** (no Web Store).
+Chrome-family, developed on Brave. **Loaded unpacked** from a release zip; a store
+listing is prepared but not submitted (see [STORE.md](STORE.md)).
 
 ## Status
 
-**Scaffold — implementation not started.** The toolchain, MV3 manifest, two-pass build,
-and quality gates are real and pass. All source files under `src/` are stubs whose doc
-comments state their future responsibility (per plan.md §7); the build produces a
-loadable-shape `dist/`. No product logic, matching, decision, or bridge code exists yet.
+**Built and released.** Pairing, focused-tab reporting, `declarativeNetRequest` blocking,
+the open-tab sweep, the SPA navigation watcher and the block page all exist and are
+covered by an in-repo Playwright suite that drives a real browser against a mock bridge
+(`pnpm e2e`). The whole path was verified against the real desktop app on 2026-08-07.
+
+Two kinds of block reach it, both as ordinary pushed rules: a **budget** the desktop app
+reports as exhausted, and a site the user marked **always blocked**, which arrives with
+an empty `resets_at` and needs no budget server behind it.
+
+**Firefox is packaged and linted but has never been run.** `pnpm package` emits both
+engines' zips and `pnpm lint:firefox` is clean; nobody has watched the add-on work.
 
 ## Build & test
 
