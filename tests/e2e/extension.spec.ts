@@ -210,6 +210,17 @@ test('blocks when the budget it was told about is no longer fresh', async () => 
     await chrome.storage.session.clear();
   });
 
+  // Wait for the worker to have acted on that before navigating. Without this
+  // the test races enforcement and passes or fails on machine speed — it passed
+  // locally and failed in CI, which is the same bug wearing two faces. If this
+  // poll times out, the extension is genuinely not failing closed.
+  await expect
+    .poll(async () => (await context.serviceWorkers()[0]?.evaluate(hasDynamicRules)) ?? false, {
+      message: 'clearing the fresh budget must install block rules, not wait to be told',
+      timeout: 15_000,
+    })
+    .toBe(true);
+
   const tab = await context.newPage();
   await tab.goto('https://example.com/', { waitUntil: 'domcontentloaded' }).catch(() => {});
   await expect
