@@ -32,9 +32,7 @@ async function render(): Promise<void> {
   const resets = document.createElement('p');
   // "–" when there is no fresh state: saying "resets in 0m" would be a guess,
   // and this page exists because guesses are not good enough.
-  resets.textContent = mine
-    ? `Resets in ${countdown(mine.resets_at, Date.now())}`
-    : 'Resets in –';
+  resets.textContent = mine ? `Resets in ${countdown(mine.resets_at, Date.now())}` : 'Resets in –';
   resets.className = 'resets';
   mount.append(resets);
 

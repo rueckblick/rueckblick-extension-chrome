@@ -14,8 +14,22 @@ budget from seconds, never mints time, and never persists raw URLs. The desktop 
 (owns the budget cache and the server conversation); the extension executes and reports.
 Blocking is redirect-based, never element hiding.
 
-**Status: toolchain skeleton — implementation pending.** All `src/` files are documented
-stubs; the build produces a loadable-shape `dist/`.
+**Status: both halves are built, and the whole path was verified in a real browser on
+2026-08-07.** The **sensor** half pairs over the loopback bridge and reports the focused
+tab once a second; the **enforcement** half redirects via `declarativeNetRequest`, sweeps
+already-open tabs, watches SPA navigation, and renders its own block page. 18 tests,
+`tsc --noEmit` clean, `dist/` loads unpacked.
+
+Verification is **`scripts/verify-bridge.mjs` in `rueckblick-app-tauri`**, which loads this
+`dist/` into a real Chromium against the app's _real_ bridge — not a mock. It showed the
+extension pair, be pushed budgets, report focused-tab heartbeats, and land a blocked URL on
+`block.html`. Two defects were found by running it rather than reading it:
+
+- **The tracker cached focus from events.** An MV3 worker is killed constantly and routinely
+  wakes having missed `onFocusChanged`, so it sent one blur and then went silent forever. It
+  now asks per sample.
+- **The popup showed a stale pairing error under "Connected"**, reporting a failure where
+  there was none.
 
 ## Invariants (this repo)
 
@@ -62,8 +76,9 @@ multi-entry (`background`, `popup.html`, `block.html`) into `dist/`, `public/man
 copied, minify off, target `chrome120`. Pass 2 emits the content script as an IIFE into the
 same `dist/` with `emptyOutDir: false`.
 
-PLANNED (not yet real): a `dev`/watch mode, the mock-bridge verification harness, and the
-CI image/release workflows (see below and `okf/playbooks/dev-verify.md`).
+PLANNED (not yet real): a `dev`/watch mode, an in-repo mock bridge and Playwright harness
+(so the extension can be checked without the desktop app running), Firefox support, and a
+release workflow producing a packaged artefact rather than only an unpacked `dist/`.
 
 ## Layout
 
@@ -73,22 +88,24 @@ Current (real) layout:
 public/manifest.json         # full MV3 manifest (config, copied verbatim into dist/)
 popup.html  block.html       # HTML entry points at repo root (build inputs)
 src/
-  shared/    protocol.ts     # PROTOCOL_VERSION=1, BRIDGE_URL — constants only so far
-             matching.ts     # the ONE matcher (stub)
-             decision.ts     # the ONE decision fn; GRACE_MS=90_000 (stub)
-             storage.ts      # local/session storage split (stub)
-  background/ index.ts       # service-worker entry (imports protocol constants)
-             bridge.ts  enforcer.ts  tracker.ts   # stubs
-  content/   spa-watcher.ts  # IIFE content script (stub)
-  ui/        popup.ts  block.ts                    # popup/block entries (stubs)
-tests/       protocol.test.ts # trivial constants test (toolchain proof)
+  shared/    protocol.ts     # PROTOCOL_VERSION=1, BRIDGE_URL, frame types
+             matching.ts     # the ONE matcher: one regex source, used verbatim as the DNR
+                             #   regexFilter AND compiled for JS matching
+             decision.ts     # the ONE decision fn; GRACE_MS=90_000, fail-closed
+             storage.ts      # local (token/instanceId/rules) vs session (budgets/lastStateAt)
+  background/ index.ts       # service-worker entry; wires bridge, tracker, enforcer
+             bridge.ts       # loopback WebSocket: pair, auth, reconnect
+             tracker.ts      # 1 Hz focused-tab heartbeat; asks per sample, never caches focus
+             enforcer.ts     # the only thing that redirects: DNR rules + open-tab sweep
+  content/   spa-watcher.ts  # IIFE; reports SPA route changes, holds no matcher of its own
+  ui/        popup.ts  block.ts                    # pairing UI; block page with countdown
+tests/       matching.test.ts decision.test.ts protocol.test.ts   # 18 tests
 vite.config.ts  vite.content.config.ts  tsconfig.json  eslint.config.js
 adr/  scripts/gen-decisions.sh  DECISIONS.md  okf/  .github/workflows/ci.yml  .mcp.json
 ```
 
-Planned target layout adds the real suites `tests/{matching,decision,protocol}.test.ts`, a
-Python mock bridge + Playwright verification harness, and (later) release/image workflows.
-The source-file set already matches plan.md §7; only their contents are stubs.
+Planned target layout adds an in-repo mock bridge + Playwright harness, and release
+workflows. The source-file set matches plan.md §7.
 
 ## Contracts
 
@@ -105,24 +122,38 @@ The source-file set already matches plan.md §7; only their contents are stubs.
 
 ## Mock & verification
 
-**NOT YET BUILT** — this is the intended design (plan.md §7, §11), documented so the
-implementer has one target.
+**What exists: a real-browser check, in the other repo.**
+`rueckblick-app-tauri`'s `scripts/verify-bridge.mjs` loads this repo's built `dist/` into a
+real Chromium and drives it against the app's **real** bridge:
 
-- **Python mock bridge** on `127.0.0.1:8434`: a WebSocket server standing in for the desktop
-  app, simulating the §2.5 contract — `pair_ok {token}` in response to `pair_request`,
-  `auth_ok` for `auth`, and on-demand `rules {...}` and `budget_state {...}` pushes. It is a
-  test double for the app's bridge; the contract is owned by `rueckblick-app-tauri`, so the
-  mock conforms to it rather than defining it.
-- **Headless Chromium via Playwright** loads the built `dist/` unpacked and drives the §11
-  extension checklist: (1) pairing via the popup numeric code, (2) `url_heartbeat` frames
-  flowing ~1/s while a tab is focused, (3) DNR redirect to `block.html?rule=<key>` when the
-  mock marks a rule blocked, (4) an already-open matching tab swept/redirected, (5)
-  cold-start fail-closed — cached rules but no fresh `budget_state` (session storage cleared)
-  ⇒ all budgeted patterns blocked on worker wake.
-- **Playwright MCP** (committed `.mcp.json`, `pnpm dlx @playwright/mcp@latest`): an agent
-  drives `popup.html` and `block.html` interactively during development — filling the pairing
-  form, reading the rendered status/budget list, watching the block-page countdown — without
-  first hand-writing a spec. Use it against the mock bridge once both exist.
+```sh
+cargo run -p rueckblick-bridge --example pair_host   # prints CODE <digits>
+node scripts/verify-bridge.mjs <digits>              # in the app repo
+```
+
+It covers pairing through the popup, heartbeats arriving while a tab is focused, and a
+blocked URL landing on `block.html`. It lives there rather than here because Playwright is
+already a dependency of that repo, and because checking against the real host is worth more
+than checking against a stand-in — a mock that agrees with a wrong assumption proves
+nothing. The one thing it stubs is OS window focus, which an automated browser on Wayland
+cannot take.
+
+**What is still missing, and why it is worth building anyway.** That harness needs the
+desktop app built and running, so it cannot run in this repo's CI, and it cannot easily
+force the states that matter most — a revoked token, a 90-second silence, a cold start with
+cached rules and no fresh budget. Those are exactly the fail-closed rows in
+`okf/concepts/fail-closed-matrix.md`, and today they are covered only by unit tests over
+`decision.ts`. An in-repo mock bridge plus a headless Playwright suite would let CI drive
+the §11 checklist end to end:
+
+1. pairing via the popup numeric code,
+2. `url_heartbeat` frames flowing ~1/s while a tab is focused,
+3. DNR redirect to `block.html?rule=<key>` when the mock marks a rule blocked,
+4. an already-open matching tab swept and redirected,
+5. cold-start fail-closed — cached rules, session storage cleared ⇒ blocked on worker wake.
+
+**Playwright MCP** (committed `.mcp.json`): an agent can drive `popup.html` and `block.html`
+interactively during development without first hand-writing a spec.
 
 See `okf/playbooks/dev-verify.md` for the step-by-step flow.
 

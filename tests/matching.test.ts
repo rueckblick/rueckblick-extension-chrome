@@ -13,9 +13,7 @@ describe('glob semantics', () => {
   });
 
   it('lets a star cross slashes', () => {
-    expect(matches('*://www.youtube.com/shorts*', 'https://www.youtube.com/shorts/abc')).toBe(
-      true,
-    );
+    expect(matches('*://www.youtube.com/shorts*', 'https://www.youtube.com/shorts/abc')).toBe(true);
     expect(matches('*://www.youtube.com/*', 'https://www.youtube.com/watch?v=1')).toBe(true);
   });
 
@@ -25,9 +23,7 @@ describe('glob semantics', () => {
   });
 
   it('is case-sensitive, like the owning implementation', () => {
-    expect(matches('*://www.youtube.com/shorts*', 'https://www.YouTube.com/shorts/a')).toBe(
-      false,
-    );
+    expect(matches('*://www.youtube.com/shorts*', 'https://www.YouTube.com/shorts/a')).toBe(false);
   });
 
   it('escapes regex metacharacters in literal segments', () => {
