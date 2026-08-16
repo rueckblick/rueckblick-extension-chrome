@@ -122,37 +122,47 @@ workflows. The source-file set matches plan.md §7.
 
 ## Mock & verification
 
-**What exists: a real-browser check, in the other repo.**
-`rueckblick-app-tauri`'s `scripts/verify-bridge.mjs` loads this repo's built `dist/` into a
-real Chromium and drives it against the app's **real** bridge:
+Two harnesses, and each covers what the other cannot.
+
+**In this repo: `pnpm e2e`** — a mock bridge plus real Chromium, driving the §11 checklist.
+
+```sh
+pnpm e2e          # builds dist/, then runs the suite
+```
+
+| Test                       | What it pins                                               |
+| -------------------------- | ---------------------------------------------------------- |
+| pairs through the popup    | the numeric code reaches the bridge and a token comes back |
+| in front, not on a website | leaving a site is **reported**, never implied by silence   |
+| redirects a blocked URL    | the DNR rule lands on `block.html?rule=<key>`              |
+| sweeps an open tab         | a tab already open when the budget runs out is redirected  |
+| no fresh budget            | a cached rule with stale state resolves to **blocked**     |
+
+Two things it deliberately does:
+
+- **It stubs OS window focus, and only that.** An automated browser does not hold desktop
+  focus, so `chrome.windows.getLastFocused()` answers `focused: false` and the tracker
+  correctly reports a blur — every focus-dependent test would pass by never running. Only
+  the flag is faked; the window id and tab query under it are real. This was found the
+  honest way, by the suite flaking on whether the window happened to have focus.
+- **The fail-closed test starts from an _allowed_ budget.** Starting from a blocked one
+  would pass whether or not fail-closed works, because the answer never changes.
+
+**Port 8434 is not shareable.** The extension connects to the port the contract names, so
+the mock must own that exact one. If the desktop app is running it already holds it, and
+the harness says so rather than timing out five times.
+
+**In the app repo: `scripts/verify-bridge.mjs`** — the same extension against the _real_
+bridge. Stronger where they overlap, because it proves both sides read the contract the
+same way; but it needs the desktop app built and running, so it cannot run in CI and cannot
+force a revoked token, a 90-second silence, or a cold start.
 
 ```sh
 cargo run -p rueckblick-bridge --example pair_host   # prints CODE <digits>
 node scripts/verify-bridge.mjs <digits>              # in the app repo
 ```
 
-It covers pairing through the popup, heartbeats arriving while a tab is focused, and a
-blocked URL landing on `block.html`. It lives there rather than here because Playwright is
-already a dependency of that repo, and because checking against the real host is worth more
-than checking against a stand-in — a mock that agrees with a wrong assumption proves
-nothing. The one thing it stubs is OS window focus, which an automated browser on Wayland
-cannot take.
-
-**What is still missing, and why it is worth building anyway.** That harness needs the
-desktop app built and running, so it cannot run in this repo's CI, and it cannot easily
-force the states that matter most — a revoked token, a 90-second silence, a cold start with
-cached rules and no fresh budget. Those are exactly the fail-closed rows in
-`okf/concepts/fail-closed-matrix.md`, and today they are covered only by unit tests over
-`decision.ts`. An in-repo mock bridge plus a headless Playwright suite would let CI drive
-the §11 checklist end to end:
-
-1. pairing via the popup numeric code,
-2. `url_heartbeat` frames flowing ~1/s while a tab is focused,
-3. DNR redirect to `block.html?rule=<key>` when the mock marks a rule blocked,
-4. an already-open matching tab swept and redirected,
-5. cold-start fail-closed — cached rules, session storage cleared ⇒ blocked on worker wake.
-
-**Playwright MCP** (committed `.mcp.json`): an agent can drive `popup.html` and `block.html`
+**Playwright MCP** (committed `.mcp.json`): drive `popup.html` and `block.html`
 interactively during development without first hand-writing a spec.
 
 See `okf/playbooks/dev-verify.md` for the step-by-step flow.

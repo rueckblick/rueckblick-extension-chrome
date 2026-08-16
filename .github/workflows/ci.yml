@@ -39,3 +39,13 @@ jobs:
 
       - name: Build (two-pass MV3)
         run: pnpm build
+
+      - name: Install Chromium for the extension suite
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Headed, under a virtual display: the tracker asks
+      # `chrome.windows.getLastFocused()` on every sample, and headless Chromium
+      # does not model window focus the way the extension depends on -- the suite
+      # would pass by never sending a heartbeat.
+      - name: Extension suite (mock bridge + real Chromium)
+        run: xvfb-run -a pnpm exec playwright test
