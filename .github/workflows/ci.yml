@@ -49,3 +49,18 @@ jobs:
       # would pass by never sending a heartbeat.
       - name: Extension suite (mock bridge + real Chromium)
         run: xvfb-run -a pnpm exec playwright test
+
+      - name: Package both engines
+        run: node scripts/package.mjs
+
+      # Mozilla's own validator. It does not run the add-on, but it is what AMO
+      # runs, and it catches a manifest Firefox would refuse before anyone tries
+      # to install one.
+      - name: Lint the Firefox build
+        run: pnpm exec web-ext lint --source-dir artifacts/firefox --self-hosted
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-artifacts
+          path: artifacts/*.zip
+          if-no-files-found: error

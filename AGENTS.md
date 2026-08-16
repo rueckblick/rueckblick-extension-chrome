@@ -76,9 +76,14 @@ multi-entry (`background`, `popup.html`, `block.html`) into `dist/`, `public/man
 copied, minify off, target `chrome120`. Pass 2 emits the content script as an IIFE into the
 same `dist/` with `emptyOutDir: false`.
 
-PLANNED (not yet real): a `dev`/watch mode, an in-repo mock bridge and Playwright harness
-(so the extension can be checked without the desktop app running), Firefox support, and a
-release workflow producing a packaged artefact rather than only an unpacked `dist/`.
+| Command             | What it does                                                    |
+| ------------------- | --------------------------------------------------------------- |
+| `pnpm e2e`          | builds, then drives real Chromium against a mock bridge         |
+| `pnpm package`      | builds, then writes a zip per engine into `artifacts/`          |
+| `pnpm lint:firefox` | `web-ext lint` over the Firefox build — Mozilla's own validator |
+
+PLANNED (not yet real): a `dev`/watch mode, and anything that actually _runs_ the add-on in
+Firefox (see below — it is packaged and validated, not exercised).
 
 ## Layout
 
@@ -106,6 +111,34 @@ adr/  scripts/gen-decisions.sh  DECISIONS.md  okf/  .github/workflows/ci.yml  .m
 
 Planned target layout adds an in-repo mock bridge + Playwright harness, and release
 workflows. The source-file set matches plan.md §7.
+
+## Two engines (`adr/D-003`)
+
+`scripts/package.mjs` writes `artifacts/rueckblick-{chrome,firefox}-<version>.zip` from one
+`dist/`. The engines differ in **two manifest keys, not in code**: Chrome MV3 runs a service
+worker, Firefox MV3 an event page declared as `scripts`; Firefox needs an extension id
+before it will install or sign. The same `background.js` is loaded either way.
+
+There is **no `browser`/`chrome` polyfill**. Firefox aliases `chrome.*` and returns promises
+from it, which is all this code uses; a shim would be a layer to maintain in exchange for
+nothing.
+
+The one genuinely Chrome-only thing was a bug: the DNR rule builder read
+`chrome.declarativeNetRequest.RuleActionType.REDIRECT`, a **Chrome runtime enum**. Off
+Chrome that object is `undefined`, reading `.REDIRECT` throws inside the builder, and
+nothing is ever blocked — a fail-_open_ invisible to any test running in Chrome. It now uses
+the contract's own strings.
+
+**Firefox is packaged and validated, not exercised.** `web-ext lint` passes with zero
+errors, warnings and notices, which checks the manifest and code against what Firefox
+accepts and is what AMO runs. It does not run the add-on, and the extension suite drives
+Chromium because Playwright cannot load an MV3 extension into Firefox. Do not read the green
+tick as "it works in Firefox".
+
+`data_collection_permissions` is declared `none`, which is true rather than convenient: the
+focused tab's URL goes to a socket on `127.0.0.1` owned by the user's own app and no
+further, and no URL is written to storage. That key requires Firefox 142, so
+`strict_min_version` is 142.
 
 ## Contracts
 

@@ -13,7 +13,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "e2e": "pnpm build && playwright test"
+    "e2e": "pnpm build && playwright test",
+    "package": "pnpm build && node scripts/package.mjs",
+    "lint:firefox": "web-ext lint --source-dir artifacts/firefox --self-hosted"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -28,6 +30,7 @@
     "typescript-eslint": "^8.64.0",
     "vite": "^8.1.5",
     "vitest": "^4.1.10",
+    "web-ext": "^10.6.0",
     "ws": "^8.21.3"
   }
 }

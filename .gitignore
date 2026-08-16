@@ -17,3 +17,6 @@ dist/
 # Playwright run artefacts
 test-results/
 playwright-report/
+
+# Packaged artefacts
+artifacts/
