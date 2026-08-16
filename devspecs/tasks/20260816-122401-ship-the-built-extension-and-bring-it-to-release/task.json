@@ -5,6 +5,7 @@
   "query": "Ship the built extension and bring it to release posture: correct the stale knowledge base, audit site-model parity with the desktop's new domain capture, build an in-repo mock-bridge plus Playwright verification harness, and add Firefox support with a packaged release artefact",
   "status": "packed",
   "created_at": "2026-08-16T12:24:01Z",
+  "updated_at": "2026-08-16T13:37:13Z",
   "repo_root": "/home/reyemb/dev/rueckblick/extension/rueckblick-extension-chrome",
   "workspace": "/home/reyemb/dev/rueckblick/extension/rueckblick-extension-chrome/devspecs/tasks/20260816-122401-ship-the-built-extension-and-bring-it-to-release",
   "artifacts": {
@@ -18,12 +19,21 @@
         "title": "Ship the built extension and bring it to release posture: correct the stale knowledge base, audit site-model parity with the desktop's new domain capture, build an in-repo mock-bridge plus Playwright verification harness, and add Firefox support with a packaged release artefact",
         "plan": "A01-ship-the-built-extension-and-bring-it-to-release-plan.md",
         "result": "A01-ship-the-built-extension-and-bring-it-to-release-result.md",
-        "kind": "slice"
+        "kind": "slice",
+        "stage": "validated",
+        "decision": "complete",
+        "updated_at": "2026-08-16T13:37:13Z",
+        "latest_checkpoint_id": "cp_20260816T133713Z_a01_validated",
+        "latest_checkpoint": "checkpoints/20260816-133713-validated.md",
+        "latest_checkpoint_json": "checkpoints/20260816-133713-validated.json"
       }
     ]
   },
   "predicted_context": {
-    "relevant_areas": ["DECISIONS.md", "adr"],
+    "relevant_areas": [
+      "DECISIONS.md",
+      "adr"
+    ],
     "docs_plans_config": [
       {
         "path": "adr/D-001-scaffold-toolchain.md",
@@ -60,9 +70,21 @@
         "short_sha": "8a93a28",
         "committed_at": "2026-07-18",
         "subject": "Scaffold MV3 extension toolchain, stubs, and knowledge base",
-        "matched_paths": ["DECISIONS.md", "adr/D-001-scaffold-toolchain.md"],
-        "matched_terms": ["extension", "to", "s", "a"],
-        "signals": ["touched 2 packed path(s)", "matched query anchors", "cross-file change"]
+        "matched_paths": [
+          "DECISIONS.md",
+          "adr/D-001-scaffold-toolchain.md"
+        ],
+        "matched_terms": [
+          "extension",
+          "to",
+          "s",
+          "a"
+        ],
+        "signals": [
+          "touched 2 packed path(s)",
+          "matched query anchors",
+          "cross-file change"
+        ]
       }
     ]
   },
