@@ -25,15 +25,31 @@ async function render(): Promise<void> {
 
   mount.innerHTML = '';
 
+  // A budget with no reset time is not a budget: it is a site the user told the
+  // app they never want, so there is nothing to count down to. Saying "out of
+  // time" there would describe time it never had, and "Resets in –" would imply
+  // it might come back.
+  const always = mine !== undefined && mine.resets_at === '';
+
   const title = document.createElement('h1');
-  title.textContent = rule ? `${rule} is out of time` : 'Out of time';
+  if (always) {
+    title.textContent = rule ? `${rule} is always blocked` : 'Always blocked';
+  } else {
+    title.textContent = rule ? `${rule} is out of time` : 'Out of time';
+  }
   mount.append(title);
 
   const resets = document.createElement('p');
-  // "–" when there is no fresh state: saying "resets in 0m" would be a guess,
-  // and this page exists because guesses are not good enough.
-  resets.textContent = mine ? `Resets in ${countdown(mine.resets_at, Date.now())}` : 'Resets in –';
   resets.className = 'resets';
+  if (always) {
+    resets.textContent = 'You asked for this one to be off the table.';
+  } else {
+    // "–" when there is no fresh state: saying "resets in 0m" would be a guess,
+    // and this page exists because guesses are not good enough.
+    resets.textContent = mine
+      ? `Resets in ${countdown(mine.resets_at, Date.now())}`
+      : 'Resets in –';
+  }
   mount.append(resets);
 
   const others = budgets.filter((budget) => budget.rule !== rule && !budget.blocked);
