@@ -1,0 +1,83 @@
+{
+  "task_id": "20260816-122401-ship-the-built-extension-and-bring-it-to-release",
+  "series": "A",
+  "profile": "code-change",
+  "query": "Ship the built extension and bring it to release posture: correct the stale knowledge base, audit site-model parity with the desktop's new domain capture, build an in-repo mock-bridge plus Playwright verification harness, and add Firefox support with a packaged release artefact",
+  "status": "packed",
+  "created_at": "2026-08-16T12:24:01Z",
+  "repo_root": "/home/reyemb/dev/rueckblick/extension/rueckblick-extension-chrome",
+  "workspace": "/home/reyemb/dev/rueckblick/extension/rueckblick-extension-chrome/devspecs/tasks/20260816-122401-ship-the-built-extension-and-bring-it-to-release",
+  "artifacts": {
+    "series": "A",
+    "index": "A00-index.md",
+    "first_slice": "A01-ship-the-built-extension-and-bring-it-to-release-plan.md",
+    "result": "A01-ship-the-built-extension-and-bring-it-to-release-result.md",
+    "slices": [
+      {
+        "id": "A01",
+        "title": "Ship the built extension and bring it to release posture: correct the stale knowledge base, audit site-model parity with the desktop's new domain capture, build an in-repo mock-bridge plus Playwright verification harness, and add Firefox support with a packaged release artefact",
+        "plan": "A01-ship-the-built-extension-and-bring-it-to-release-plan.md",
+        "result": "A01-ship-the-built-extension-and-bring-it-to-release-result.md",
+        "kind": "slice"
+      }
+    ]
+  },
+  "predicted_context": {
+    "relevant_areas": ["DECISIONS.md", "adr"],
+    "docs_plans_config": [
+      {
+        "path": "adr/D-001-scaffold-toolchain.md",
+        "title": "D-001 — Scaffold toolchain \u0026 version selection",
+        "kind": "decision",
+        "subtype": "adr",
+        "role": "background_decisions",
+        "evidence": [
+          "indexed section match: D-001 — Scaffold toolchain \u0026 version selection lines 1-29",
+          "query term match in body: base",
+          "query term match in body: build",
+          "authority/query-intent signal: ADR",
+          "authority prior: canonical ADR path"
+        ]
+      },
+      {
+        "path": "DECISIONS.md",
+        "title": "Decision Log",
+        "kind": "markdown_artifact",
+        "subtype": "workflow_definition",
+        "role": "config_schema",
+        "evidence": [
+          "section-packed context: Decision Log \u003e D-019 — Sub-app attribution via AccessibilityService, isolated in a FOSS build flavor; Decision Log \u003e D-028 — Tag-driven signed releases, R8 on, keys never in the repo; Decision Log \u003e D-037 — Sync is one engine over several transports; the first one is a folder",
+          "indexed section match: Decision Log \u003e D-019 — Sub-app attribution via AccessibilityService, isolated in a FOSS build flavor lines 598-683; Decision Log \u003e D-037 — Sync is one engine over several transports; the first one is a folder lines 1602-1790",
+          "query term match in body: add",
+          "authority prior: requested model artifact",
+          "authority prior: classifier confidence"
+        ]
+      }
+    ],
+    "related_git_receipts": [
+      {
+        "sha": "8a93a281c95756aecca24924485b9226ccd42984",
+        "short_sha": "8a93a28",
+        "committed_at": "2026-07-18",
+        "subject": "Scaffold MV3 extension toolchain, stubs, and knowledge base",
+        "matched_paths": ["DECISIONS.md", "adr/D-001-scaffold-toolchain.md"],
+        "matched_terms": ["extension", "to", "s", "a"],
+        "signals": ["touched 2 packed path(s)", "matched query anchors", "cross-file change"]
+      }
+    ]
+  },
+  "confidence": {
+    "primary_file_confidence": "low",
+    "test_coverage_confidence": "low",
+    "docs_config_confidence": "high",
+    "git_receipt_confidence": "medium",
+    "noise_risk": "low",
+    "pack_completeness": "low",
+    "why": [
+      "no clear primary implementation file was found",
+      "test companion coverage was not evident from the initial pack",
+      "found 1 related Git receipt(s)"
+    ],
+    "agent_instruction": "Validate the test and integration surface before editing. Record critical misses and distracting inclusions in the slice result or a task checkpoint."
+  }
+}

@@ -6,9 +6,56 @@
     <title>Rueckblick</title>
   </head>
   <body>
-    <!-- Popup shell. Status line, pairing form, and budget list are rendered by
-         src/ui/popup.ts once implemented (see §7). Currently a stub mount point. -->
     <main id="app"></main>
+    <style>
+      body {
+        margin: 0;
+        min-width: 17rem;
+        padding: 0.9rem 1rem;
+        background: #0a0c10;
+        color: #e7e9ee;
+        font:
+          14px/1.45 system-ui,
+          sans-serif;
+      }
+      .status {
+        margin: 0 0 0.5rem;
+        font-weight: 600;
+      }
+      .hint {
+        margin: 0 0 0.5rem;
+        color: #9aa3b2;
+        font-size: 0.85em;
+      }
+      .error {
+        margin: 0 0 0.5rem;
+        color: #f2b34c;
+        font-size: 0.85em;
+      }
+      input {
+        width: 6.5em;
+        padding: 0.35rem 0.5rem;
+        letter-spacing: 0.3em;
+        background: #11141a;
+        color: #e7e9ee;
+        border: 1px solid #e7e9ee22;
+        border-radius: 6px;
+      }
+      button {
+        margin-left: 0.4rem;
+        padding: 0.35rem 0.9rem;
+        border: 0;
+        border-radius: 999px;
+        background: #f2b34c;
+        color: #0a0c10;
+        cursor: pointer;
+      }
+      ul {
+        margin: 0.7rem 0 0;
+        padding-left: 1.1rem;
+        color: #9aa3b2;
+      }
+    </style>
     <script type="module" src="/src/ui/popup.ts"></script>
   </body>
 </html>
