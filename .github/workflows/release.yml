@@ -1,0 +1,77 @@
+# A tag builds a release, or nothing at all.
+#
+# Modelled on the desktop app's workflow, including the order: the gate runs
+# first and unchanged, because a tag is not a reason to skip the checks and a
+# release built from code that would fail CI is worse than no release.
+#
+# The tag and the two manifests have to agree before anything is built. A v0.3.0
+# tag on a tree that still says 0.1.0 produces a zip nobody can match to a source
+# revision, and the mismatch is invisible until somebody reports a version that
+# does not exist.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  # Cheap, and first.
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag must match the manifests
+        run: node scripts/check-version.mjs "${{ github.ref }}"
+
+  gate:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Package both engines
+        run: node scripts/package.mjs
+
+      # Mozilla's validator, again, on exactly the bytes being published rather
+      # than on a build made earlier in a different job.
+      - name: Lint the Firefox build
+        run: pnpm exec web-ext lint --source-dir artifacts/firefox --self-hosted
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.zip
+          fail_on_unmatched_files: true
+          body: |
+            Load unpacked — this is not on any store.
+
+            **Chrome, Brave, Edge**
+            1. Download `rueckblick-chrome-*.zip` below and unzip it.
+            2. Open `chrome://extensions` (Brave: `brave://extensions`).
+            3. Turn on **Developer mode**, click **Load unpacked**, choose the
+               unzipped folder.
+
+            **Firefox** — packaged and validated, but never yet run by anyone.
+            `about:debugging` → This Firefox → Load Temporary Add-on.
+
+            Then pair it: in the desktop app, **Settings → Browser extension →
+            Show a pairing code**, and type the six digits into the extension's
+            popup. The code lasts five minutes and works once.

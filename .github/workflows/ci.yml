@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  # Callable from the release workflow, so a tag runs this gate unchanged
+  # rather than a copy of it that can drift.
+  workflow_call:
   push:
     branches: [main]
   pull_request:
@@ -24,6 +27,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Version check (both manifests agree)
+        run: node scripts/check-version.mjs
 
       - name: Typecheck
         run: pnpm typecheck
