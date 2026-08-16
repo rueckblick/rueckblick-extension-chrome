@@ -4,7 +4,9 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    // `artifacts/` holds copies of the built bundles, which are output rather
+    // than source and were briefly linted as though they were ours.
+    ignores: ['dist/**', 'artifacts/**', 'node_modules/**', 'test-results/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -30,6 +32,17 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.node,
+      },
+    },
+  },
+  {
+    // The harness and the packaging script run in Node, not in a browser. Kept
+    // separate from the extension source, which must never reach for Node.
+    files: ['scripts/**/*.mjs', 'tests/e2e/**/*.ts', 'tests/harness/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.webextensions,
       },
     },
   },

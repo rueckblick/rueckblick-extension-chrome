@@ -17,5 +17,6 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": ["src", "tests", "*.config.ts"]
+  "include": ["src", "tests"],
+  "exclude": ["tests/e2e", "tests/harness"]
 }

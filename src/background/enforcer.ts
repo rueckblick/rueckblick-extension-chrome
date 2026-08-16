@@ -40,15 +40,20 @@ export async function syncDnrRules(): Promise<void> {
   const addRules = patterns.map((entry, index) => ({
     id: RULE_ID_BASE + index,
     priority: 1,
+    // Written as the strings the contract uses, not as
+    // `chrome.declarativeNetRequest.RuleActionType.REDIRECT`. Those enums are a
+    // Chrome runtime object: on any other engine they are `undefined`, reading
+    // `.REDIRECT` throws inside the rule builder, and nothing is ever blocked —
+    // a fail-*open* that no test in Chrome can see.
     action: {
-      type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
+      type: 'redirect' as chrome.declarativeNetRequest.RuleActionType,
       redirect: {
         extensionPath: `/block.html?rule=${encodeURIComponent(entry.key)}`,
       },
     },
     condition: {
       regexFilter: patternToRegex(entry.pattern),
-      resourceTypes: [chrome.declarativeNetRequest.ResourceType.MAIN_FRAME],
+      resourceTypes: ['main_frame' as chrome.declarativeNetRequest.ResourceType],
     },
   }));
 

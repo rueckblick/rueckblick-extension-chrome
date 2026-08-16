@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "chrome"]
+  },
+  "include": ["tests/e2e", "tests/harness", "playwright.config.ts"]
+}

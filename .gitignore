@@ -13,3 +13,10 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Playwright run artefacts
+test-results/
+playwright-report/
+
+# Packaged artefacts
+artifacts/

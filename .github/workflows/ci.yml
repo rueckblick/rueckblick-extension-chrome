@@ -39,3 +39,28 @@ jobs:
 
       - name: Build (two-pass MV3)
         run: pnpm build
+
+      - name: Install Chromium for the extension suite
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Headed, under a virtual display: the tracker asks
+      # `chrome.windows.getLastFocused()` on every sample, and headless Chromium
+      # does not model window focus the way the extension depends on -- the suite
+      # would pass by never sending a heartbeat.
+      - name: Extension suite (mock bridge + real Chromium)
+        run: xvfb-run -a pnpm exec playwright test
+
+      - name: Package both engines
+        run: node scripts/package.mjs
+
+      # Mozilla's own validator. It does not run the add-on, but it is what AMO
+      # runs, and it catches a manifest Firefox would refuse before anyone tries
+      # to install one.
+      - name: Lint the Firefox build
+        run: pnpm exec web-ext lint --source-dir artifacts/firefox --self-hosted
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-artifacts
+          path: artifacts/*.zip
+          if-no-files-found: error
