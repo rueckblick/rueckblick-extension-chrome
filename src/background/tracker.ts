@@ -1,9 +1,15 @@
 /**
  * Focused-tab tracker (see plan.md §7).
  *
- * One heartbeat a second for the active tab of the focused window, and nothing at all
- * when no window has focus — a browser in the background is not where the user is, and
- * saying otherwise would charge a rule for a page nobody is looking at.
+ * One heartbeat a second while a browser window has focus, and nothing at all when none
+ * does — a browser in the background is not where the user is, and saying otherwise would
+ * charge a rule for a page nobody is looking at.
+ *
+ * **Silence and "not on a website" are different messages.** A focused window showing a
+ * new tab, the browser's own settings or a PDF is reported as focused with an empty url.
+ * Sending nothing there would look exactly like this worker being asleep, and the app
+ * treats silence as "no observation" — leaving the journal charging the last site the user
+ * was on.
  *
  * Raw URLs are never persisted here. They are sent to the desktop app, which matches them
  * against rules and keeps only what it is allowed to keep.
@@ -59,15 +65,21 @@ async function sample(): Promise<void> {
   reportedBlur = false;
 
   const [tab] = await chrome.tabs.query({ active: true, windowId: window.id });
-  // Only real pages. A new tab, the extensions page or a devtools window is not
-  // somewhere the user spent time on the web.
-  if (!tab?.url || !/^https?:/.test(tab.url)) return;
+  // Only real pages count as a site. A new tab, the browser's own settings, a
+  // PDF or a devtools window is not somewhere the user spent time on the web.
+  //
+  // But it is still *reported*, as focused with an empty url. Sending nothing
+  // would be indistinguishable from this worker being asleep, and the app
+  // treats silence as "no observation" — so the journal would go on charging
+  // the last website the user was on. Ten minutes on github.com followed by
+  // five on a new tab page would be recorded as fifteen minutes of github.com.
+  const onAWebsite = typeof tab?.url === 'string' && /^https?:/.test(tab.url);
 
   bridge.send({
     type: 'url_heartbeat',
-    url: tab.url,
+    url: onAWebsite ? (tab.url as string) : '',
     focused: true,
-    audible: tab.audible ?? false,
+    audible: tab?.audible ?? false,
     at: new Date().toISOString(),
   });
 }
