@@ -12,7 +12,7 @@ import { test, expect, chromium, type BrowserContext } from '@playwright/test';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { MockBridge, allowedRule, blockedRule } from '../harness/mock-bridge.js';
+import { MockBridge, allowedRule, alwaysBlockedRule, blockedRule } from '../harness/mock-bridge.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const EXTENSION = path.resolve(here, '../../dist');
@@ -153,6 +153,34 @@ test('redirects a blocked URL to its own block page', async () => {
 
   await expect.poll(() => tab.url(), { timeout: 15_000 }).toContain('block.html');
   await expect(tab.url()).toContain('rule=example');
+});
+
+/**
+ * An always-blocked site arrives as an ordinary rule with an exhausted budget that
+ * never resets. Nothing in the enforcement path changes; only the page the user
+ * lands on has to stop claiming they ran out of time they never had.
+ */
+test('says always blocked, not out of time, when there is no reset', async () => {
+  const { id } = await serviceWorker(context);
+  await pair(context, id);
+
+  const { rules, budgets } = alwaysBlockedRule('shorts', ['*://*.youtube.com/shorts*']);
+  bridge.pushRules(rules);
+  bridge.pushBudgets(budgets);
+  await expect
+    .poll(async () => (await context.serviceWorkers()[0]?.evaluate(hasDynamicRules)) ?? false, {
+      timeout: 15_000,
+    })
+    .toBe(true);
+
+  const tab = await context.newPage();
+  await tab
+    .goto('https://www.youtube.com/shorts/abc', { waitUntil: 'domcontentloaded' })
+    .catch(() => {});
+
+  await expect.poll(() => tab.url(), { timeout: 15_000 }).toContain('block.html');
+  await expect(tab.locator('h1')).toHaveText('shorts is always blocked');
+  await expect(tab.locator('.resets')).not.toContainText('Resets in');
 });
 
 /** A tab already open when the budget runs out has no request left to redirect. */

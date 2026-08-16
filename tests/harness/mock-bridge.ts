@@ -149,6 +149,15 @@ export const blockedRule = (key: string, patterns: string[]) => ({
   budgets: [{ rule: key, blocked: true, remaining_seconds: 0, resets_at: '2026-01-01T00:00:00Z' }],
 });
 
+/**
+ * A site the desktop app blocks with no budget behind it: the empty `resets_at`
+ * is the whole signal, and the block page must not offer a countdown to it.
+ */
+export const alwaysBlockedRule = (key: string, patterns: string[]) => ({
+  rules: [{ key, url_patterns: patterns, parent: null }],
+  budgets: [{ rule: key, blocked: true, remaining_seconds: 0, resets_at: '' }],
+});
+
 /** The same rule with time left on it. */
 export const allowedRule = (key: string, patterns: string[]) => ({
   rules: [{ key, url_patterns: patterns, parent: null }],

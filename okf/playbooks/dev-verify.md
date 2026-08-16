@@ -1,7 +1,7 @@
 ---
 type: playbook
 title: Develop, load-unpacked, and verify the extension
-description: Build/gate commands today, load-unpacked flow, and the PLANNED mock-bridge + headless-Chromium verification
+description: Build/gate commands, load-unpacked flow, and the mock-bridge Playwright verification
 tags: [rueckblick, extension, verification, playbook, mock-bridge]
 timestamp: 2026-07-18
 ---
@@ -64,10 +64,9 @@ The intended automated verification, to be added when the implementation lands:
   `block.html` interactively during development — click the pairing form, read the rendered
   status/budget list, watch the block-page countdown — without hand-writing a spec first.
 
-## Test suites — PLANNED
+## Test suites
 
-Today `tests/protocol.test.ts` is a trivial constants test proving the vitest+TS toolchain
-runs. The real matrix, documented as the executable spec:
+All built. `pnpm test` runs the unit matrix, `pnpm e2e` the browser one.
 
 - `matching.test.ts` — glob-semantics vectors replicated from the desktop app's
   `crates/core` (plan.md §2.1). This repo pins the semantics via vectors; it does not own
@@ -75,3 +74,8 @@ runs. The real matrix, documented as the executable spec:
 - `decision.test.ts` — one named test per row of the [[fail-closed-matrix]].
 - `protocol.test.ts` — parse/drop tests for every bridge message type (malformed and
   `v !== 1` frames dropped whole).
+- `e2e/extension.spec.ts` — a real browser with the extension loaded, against
+  `tests/harness/mock-bridge.ts`: pairing, focused-tab reporting, leaving a website,
+  redirecting a blocked URL, always-blocked copy, the open-tab sweep, and cold-start
+  fail-closed. `vitest.config.ts` excludes it, so the two runners do not collide —
+  without that, vitest globbed the spec and reported a pass it never ran.

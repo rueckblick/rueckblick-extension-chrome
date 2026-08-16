@@ -53,6 +53,8 @@ you need it.
 > the sites you actually spent it on rather than as "browser".
 > • Blocks sites whose daily budget the app says is used up, by redirecting them
 > to a page that tells you when the budget resets.
+> • Blocks sites you told the app you never want at all — those need no budget
+> server, and the block page says so instead of offering a countdown.
 > • Blocks already-open tabs too, not just new requests.
 >
 > **Where your browsing goes: nowhere.** The extension opens exactly one
