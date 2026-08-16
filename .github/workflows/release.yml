@@ -47,8 +47,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # `pnpm package`, not the script directly: it builds first. The gate job
+      # built too, but that was a different runner and its dist/ does not travel.
       - name: Package both engines
-        run: node scripts/package.mjs
+        run: pnpm package
 
       # Mozilla's validator, again, on exactly the bytes being published rather
       # than on a build made earlier in a different job.
