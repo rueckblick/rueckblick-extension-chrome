@@ -78,10 +78,16 @@ export async function sweepOpenTabs(): Promise<void> {
   for (const tab of tabs) {
     if (typeof tab.id !== 'number' || !tab.url) continue;
     const hit = patterns.find((entry) => matches(entry.pattern, tab.url as string));
-    if (hit) {
+    if (!hit) continue;
+    try {
       await chrome.tabs.update(tab.id, {
         url: chrome.runtime.getURL(`block.html?rule=${encodeURIComponent(hit.key)}`),
       });
+    } catch {
+      // The tab was closed or moved between the query and the update. That is
+      // ordinary, and it must not end the sweep: an unhandled throw here left
+      // every *later* blocked tab open, which is the one thing this function
+      // exists to prevent. Skipping a tab that has gone costs nothing.
     }
   }
 }

@@ -16,7 +16,10 @@ function wake(): void {
   // Re-enforce FIRST, before anything can connect. A cold start has cached
   // rules and no fresh budget, so this makes "blocked until told otherwise" the
   // initial condition rather than something racing the socket.
-  void reenforce();
+  // Deliberately logged rather than left to become an unhandled rejection: a
+  // rejection here shows up in the console as a frame at a closing brace, which
+  // says nothing about what failed.
+  reenforce().catch((error: unknown) => console.error('rueckblick: enforce failed', error));
   void bridge.connect();
   startTracker();
 }
@@ -49,7 +52,10 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
 // is the one place every path funnels through.
 chrome.storage.onChanged.addListener((changes, area) => {
   if ((area === 'session' && changes.budgets) || (area === 'local' && changes.rules)) {
-    void reenforce();
+    // Deliberately logged rather than left to become an unhandled rejection: a
+    // rejection here shows up in the console as a frame at a closing brace, which
+    // says nothing about what failed.
+    reenforce().catch((error: unknown) => console.error('rueckblick: enforce failed', error));
   }
 });
 

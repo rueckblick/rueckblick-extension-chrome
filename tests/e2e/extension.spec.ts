@@ -229,6 +229,50 @@ test('sweeps a tab that was already open when the budget ran out', async () => {
 });
 
 /**
+ * A tab closing mid-sweep is ordinary, and it used to end the sweep.
+ *
+ * `chrome.tabs.update` throws "No tab with id" for a tab that has gone between the query
+ * and the update, and the throw propagated: every blocked tab after it stayed open. The
+ * more rules there are, the likelier the sweep touches a tab that is on its way out — so
+ * this got easier to hit exactly when block lists grew.
+ *
+ * The first update is forced to throw, which is the one thing stubbed here.
+ */
+test('a tab that dies mid-sweep does not save the tabs behind it', async () => {
+  const { id } = await serviceWorker(context);
+  await pair(context, id);
+
+  const doomed = await context.newPage();
+  await doomed.goto('https://example.com/one', { waitUntil: 'domcontentloaded' }).catch(() => {});
+  const survivor = await context.newPage();
+  await survivor.goto('https://example.com/two', { waitUntil: 'domcontentloaded' }).catch(() => {});
+
+  await context.serviceWorkers()[0]?.evaluate(() => {
+    const real = chrome.tabs.update.bind(chrome.tabs);
+    let first = true;
+    // @ts-expect-error deliberately replacing the binding for this test
+    chrome.tabs.update = (tabId: number, props: chrome.tabs.UpdateProperties) => {
+      if (first) {
+        first = false;
+        return Promise.reject(new Error('No tab with id: ' + String(tabId)));
+      }
+      return real(tabId, props);
+    };
+  });
+
+  const { rules, budgets } = blockedRule('example', ['*://example.com/*']);
+  bridge.pushRules(rules);
+  bridge.pushBudgets(budgets);
+
+  await expect
+    .poll(() => [doomed.url(), survivor.url()].filter((url) => url.includes('block.html')).length, {
+      message: 'one tab failing to update must not stop the rest of the sweep',
+      timeout: 15_000,
+    })
+    .toBeGreaterThan(0);
+});
+
+/**
  * The fail-closed row only a mock can reach.
  *
  * Rules survive a restart in `local`; budgets do not (`session`). So a worker that wakes
