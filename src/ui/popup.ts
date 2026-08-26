@@ -65,15 +65,37 @@ async function render(): Promise<void> {
     app.append(form);
   }
 
-  if (budgets.length > 0) {
+  // Two different things used to read identically here: a budget that has run
+  // out says "blocked", and so did a site the user asked never to allow. The
+  // empty resets_at separates them, and the difference is worth showing —
+  // "blocked" invites you to wait for it, and this one is not coming back.
+  const always = budgets.filter((budget) => budget.resets_at === '');
+  const timed = budgets.filter((budget) => budget.resets_at !== '');
+
+  if (always.length > 0) {
+    app.append(el('p', 'Always blocked', 'eyebrow'));
     const list = document.createElement('ul');
-    for (const budget of budgets) {
+    for (const budget of always) list.append(el('li', budget.rule));
+    app.append(list);
+  }
+
+  if (timed.length > 0) {
+    if (always.length > 0) app.append(el('p', 'Budgets', 'eyebrow'));
+    const list = document.createElement('ul');
+    for (const budget of timed) {
       const left = budget.blocked
         ? 'blocked'
         : `${Math.max(0, Math.round(budget.remaining_seconds / 60))} min left`;
       list.append(el('li', `${budget.rule} — ${left}`));
     }
     app.append(list);
+  }
+
+  // The popup deliberately does not edit this list. The app is the single
+  // decision point, and a browser-side copy would have to be kept in step in
+  // every profile the user has.
+  if (connected) {
+    app.append(el('p', 'Set these in Rueckblick under Rules.', 'hint'));
   }
 }
 

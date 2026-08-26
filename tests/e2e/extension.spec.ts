@@ -183,6 +183,30 @@ test('says always blocked, not out of time, when there is no reset', async () =>
   await expect(tab.locator('.resets')).not.toContainText('Resets in');
 });
 
+/**
+ * The popup is the only place in the browser that says what is in force, so the two
+ * kinds must not read alike there either: a budget invites you to wait for it, an
+ * always-blocked site does not.
+ */
+test('the popup separates always-blocked sites from budgets', async () => {
+  const { id } = await serviceWorker(context);
+  const popup = await pair(context, id);
+
+  bridge.pushBudgets([
+    { rule: 'youtube-shorts', blocked: true, remaining_seconds: 0, resets_at: '' },
+    {
+      rule: 'gaming',
+      blocked: false,
+      remaining_seconds: 1800,
+      resets_at: '2026-01-01T00:00:00Z',
+    },
+  ]);
+
+  await popup.reload();
+  await expect(popup.locator('.eyebrow').first()).toHaveText('Always blocked');
+  await expect(popup.locator('li')).toHaveText(['youtube-shorts', 'gaming — 30 min left']);
+});
+
 /** A tab already open when the budget runs out has no request left to redirect. */
 test('sweeps a tab that was already open when the budget ran out', async () => {
   const { id } = await serviceWorker(context);
