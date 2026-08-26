@@ -203,6 +203,11 @@ test('the popup separates always-blocked sites from budgets', async () => {
   ]);
 
   await popup.reload();
+  // The popup names its own version, which is the only place the user can read
+  // it without the app: an unpacked extension never auto-updates.
+  await expect(popup.locator('.version')).toHaveText(
+    `Version ${JSON.parse(fs.readFileSync(path.resolve(here, '../../public/manifest.json'), 'utf8')).version}`,
+  );
   await expect(popup.locator('.eyebrow').first()).toHaveText('Always blocked');
   await expect(popup.locator('li')).toHaveText(['youtube-shorts', 'gaming — 30 min left']);
 });

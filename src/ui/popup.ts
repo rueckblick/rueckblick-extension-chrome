@@ -28,6 +28,11 @@ async function render(): Promise<void> {
   app.innerHTML = '';
   app.append(el('p', status, 'status'));
 
+  // Which version this is, always, connected or not. Loading unpacked never
+  // auto-updates, so "am I current?" is a question the user has to be able to
+  // answer here — the app can only answer it for browsers it can see.
+  app.append(el('p', `Version ${chrome.runtime.getManifest().version}`, 'version'));
+
   // Only while it still matters. A pairing error left over from an earlier
   // attempt, shown underneath "Connected", tells the user something is wrong
   // when nothing is.
