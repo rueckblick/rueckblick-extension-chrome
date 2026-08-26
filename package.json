@@ -1,6 +1,6 @@
 {
   "name": "rueckblick-extension-chrome",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Rueckblick MV3 browser extension: a thin sensor/actuator that samples the focused tab and hard-blocks exhausted URLs via the desktop-app bridge.",
   "private": true,
   "type": "module",
