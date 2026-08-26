@@ -24,6 +24,29 @@ an empty `resets_at` and needs no budget server behind it.
 **Firefox is packaged and linted but has never been run.** `pnpm package` emits both
 engines' zips and `pnpm lint:firefox` is clean; nobody has watched the add-on work.
 
+## Installing it, and updating it
+
+```bash
+./scripts/install-unpacked.sh                 # latest release into ~/rueckblick-extension
+./scripts/install-unpacked.sh v0.3.3          # a specific tag
+./scripts/install-unpacked.sh latest ~/where  # somewhere else
+```
+
+Then load that folder once per browser profile via `brave://extensions` →
+Developer mode → **Load unpacked**, and pair it from the app (a code is consumed
+by the first browser that uses it, so show a fresh one per profile).
+
+**Updating is the same command.** A browser loading an extension unpacked never
+auto-updates — it reads the folder at startup and never checks again — so after
+running it, press **Reload** on the extension in each profile, or just restart
+the browser, which reloads unpacked extensions anyway. The script swaps the
+folder rather than unpacking over it, and keeps the old copy as
+`<target>.previous`, because the browser may have it open at the time.
+
+**Which version is loaded** is readable from either end: the popup names it, and
+the desktop app's **Settings → Browser extension** lists each paired browser
+with the version it reported, flagging any that is not the app's own.
+
 ## Build & test
 
 Requires Node 22 and pnpm 11. **No runtime third-party dependencies** — dev-only toolchain.
