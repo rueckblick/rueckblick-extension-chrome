@@ -83,17 +83,22 @@ class BridgeClient {
 
   private async greet(): Promise<void> {
     const instanceId = await getInstanceId();
+    // Read from the manifest rather than written down twice: the version in the
+    // zip's name and the version this reports must be the same fact, and
+    // `scripts/check-version.mjs` already keeps the manifest honest.
+    const version = chrome.runtime.getManifest().version;
     if (this.pendingCode) {
       this.send({
         type: 'pair_request',
         code: this.pendingCode,
         instance_id: instanceId,
+        version,
       });
       return;
     }
     const token = await getToken();
     if (token) {
-      this.send({ type: 'auth', token, instance_id: instanceId });
+      this.send({ type: 'auth', token, instance_id: instanceId, version });
       return;
     }
     this.socket?.close();

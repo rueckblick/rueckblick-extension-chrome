@@ -14,8 +14,8 @@ export const PROTOCOL_VERSION = 1 as const;
 export const BRIDGE_URL = 'ws://127.0.0.1:8434' as const;
 
 export type ClientMessage =
-  | { type: 'pair_request'; code: string; instance_id: string }
-  | { type: 'auth'; token: string; instance_id: string }
+  | { type: 'pair_request'; code: string; instance_id: string; version: string }
+  | { type: 'auth'; token: string; instance_id: string; version: string }
   | { type: 'url_heartbeat'; url: string; focused: boolean; audible: boolean; at: string };
 
 export type BridgeRule = { key: string; url_patterns: string[]; parent: string | null };
